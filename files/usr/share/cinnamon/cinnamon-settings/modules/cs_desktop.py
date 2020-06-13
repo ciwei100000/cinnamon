@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 
-from gi.repository import Gio
-
 import gi
 gi.require_version('Nemo', '3.0')
 
@@ -41,7 +39,7 @@ class Module:
             pass
         except AttributeError:
             pass
-        print(have_nemo)
+
         return have_nemo
 
     def on_module_selected(self):

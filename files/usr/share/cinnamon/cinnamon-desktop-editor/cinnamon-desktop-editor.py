@@ -12,8 +12,7 @@ from setproctitle import setproctitle
 import gi
 gi.require_version("Gtk", "3.0")
 gi.require_version("CMenu", "3.0")
-gi.require_version("XApp", "1.0")
-from gi.repository import GLib, Gtk, Gio, CMenu, GdkPixbuf, XApp
+from gi.repository import GLib, Gtk, Gio, CMenu
 
 sys.path.insert(0, '/usr/share/cinnamon/cinnamon-menu-editor')
 from cme import util
@@ -39,11 +38,10 @@ def escape_space(string):
 
 def ask(msg):
     dialog = Gtk.MessageDialog(None,
-                               Gtk.DialogFlags.DESTROY_WITH_PARENT,
+                               Gtk.DialogFlags.DESTROY_WITH_PARENT | Gtk.DialogFlags.MODAL,
                                Gtk.MessageType.QUESTION,
                                Gtk.ButtonsType.YES_NO,
                                None)
-    dialog.set_default_size(400, 200)
     dialog.set_markup(msg)
     dialog.show_all()
     response = dialog.run()
@@ -194,7 +192,7 @@ class LauncherEditor(ItemEditor):
     def resync_validity(self, *args):
         name_text = self.builder.get_object('name-entry').get_text().strip()
         exec_text = self.builder.get_object('exec-entry').get_text().strip()
-        name_valid = name_text is not ""
+        name_valid = name_text != ""
         exec_valid = self.validate_exec_line(exec_text)
         self.sync_widgets(name_valid, exec_valid)
 
@@ -236,7 +234,7 @@ class DirectoryEditor(ItemEditor):
 
     def resync_validity(self, *args):
         name_text = self.builder.get_object('name-entry').get_text().strip()
-        valid = (name_text is not "")
+        valid = (name_text != "")
         self.builder.get_object('ok').set_sensitive(valid)
 
     def load(self):
@@ -281,7 +279,7 @@ class CinnamonLauncherEditor(ItemEditor):
     def resync_validity(self, *args):
         name_text = self.builder.get_object('name-entry').get_text().strip()
         exec_text = self.builder.get_object('exec-entry').get_text().strip()
-        name_valid = name_text is not ""
+        name_valid = name_text != ""
         exec_valid = self.validate_exec_line(exec_text)
         self.sync_widgets(name_valid, exec_valid)
 

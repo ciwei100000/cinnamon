@@ -95,7 +95,6 @@ cinnamon_public_headers_h =		\
 	cinnamon-generic-container.h	\
 	cinnamon-gtk-embed.h		\
 	cinnamon-global.h			\
-	cinnamon-mount-operation.h		\
 	cinnamon-perf-log.h		\
 	cinnamon-screenshot.h	\
 	cinnamon-slicer.h			\
@@ -124,7 +123,6 @@ libcinnamon_la_SOURCES =		\
 	cinnamon-generic-container.c	\
 	cinnamon-gtk-embed.c		\
 	cinnamon-global.c			\
-	cinnamon-mount-operation.c		\
 	cinnamon-perf-log.c		\
 	cinnamon-screenshot.c		\
 	cinnamon-slicer.c			\
@@ -227,11 +225,6 @@ libcinnamon_libadd =		\
 	$(CINNAMON_LIBS)	\
 	libst-1.0.la       	\
 	libtray.la \
-	$(libdir)/muffin/libmuffin-clutter-0.so \
-	$(libdir)/muffin/libmuffin-cogl-0.so \
-	$(libdir)/muffin/libmuffin-cogl-pango-0.so \
-	$(libdir)/muffin/libmuffin-cogl-path-0.so \
-	$(MUFFIN_LIBS)
 	$(NULL)
 
 libcinnamon_la_LDFLAGS = $(WARN_LDFLAGS) -avoid-version -L$(libdir)/muffin

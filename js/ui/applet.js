@@ -290,13 +290,19 @@ var Applet = class Applet {
     /**
      * set_applet_tooltip:
      * @text (string): the tooltip text to be set
+     * @use_markup (boolean): parse the text as markup if true
      *
      * Sets the tooltip of the applet
      */
-    set_applet_tooltip (text) {
+    set_applet_tooltip (text, use_markup=false) {
         if (text != this._applet_tooltip_text) {
             this._applet_tooltip_text = text;
-            this._applet_tooltip.set_text(text);
+
+            if (use_markup) {
+                this._applet_tooltip.set_markup(text);
+            } else {
+                this._applet_tooltip.set_text(text);
+            }
         }
         if (text === "") {
             this._applet_tooltip.hide();
@@ -557,7 +563,7 @@ var Applet = class Applet {
             AppletManager._removeAppletFromPanel(this._uuid, this.instance_id);
         } else {
             let dialog = new ModalDialog.ConfirmDialog(
-                _("Are you sure you want to remove %s?").format(this._meta.name),
+                _("Are you sure you want to remove '%s'?").format(this._(this._meta.name)),
                 () => AppletManager._removeAppletFromPanel(this._uuid, this.instance_id)
             );
             dialog.open();

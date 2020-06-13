@@ -11,6 +11,7 @@ class Module:
     def __init__(self, content_box):
         keywords = _("display, screen, monitor, layout, resolution, dual, lcd")
         self.sidePage = SidePage(_("Display"), "cs-display", keywords, content_box, module=self)
+        self.display_c_widget = None
 
     def on_module_selected(self):
         if not self.loaded:
@@ -24,9 +25,16 @@ class Module:
 
             try:
                 settings = page.add_section(_("Layout"))
+
                 widget = SettingsWidget()
+                widget.set_border_width(0)
+                widget.set_margin_start(0)
+                widget.set_margin_end(0)
+
                 content = self.sidePage.content_box.c_manager.get_c_widget("display")
                 widget.pack_start(content, True, True, 0)
+
+                self.display_c_widget = content
                 settings.add_row(widget)
 
             except Exception as detail:
@@ -36,10 +44,10 @@ class Module:
             self.sidePage.stack.add_titled(page, "settings", _("Settings"))
             settings = page.add_section(_("Settings"))
 
-            ui_scales = [[0, _("Auto")], [1, _("Normal")], [2, _("Double (Hi-DPI)")]]
-            combo = GSettingsComboBox(_("User interface scaling:"), "org.cinnamon.desktop.interface", "scaling-factor", ui_scales, valtype=int)
-            settings.add_row(combo)
-
             switch = GSettingsSwitch(_("Disable automatic screen rotation"), "org.cinnamon.settings-daemon.peripherals.touchscreen", "orientation-lock")
             switch.set_tooltip_text(_("Select this option to disable automatic screen rotation on hardware equipped with supported accelerometers."))
             settings.add_row(switch)
+
+    def on_navigate_out_of_module(self):
+        if self.display_c_widget:
+            self.display_c_widget.hide()

@@ -1,23 +1,19 @@
 #!/usr/bin/python3
 
-import sys
 import os
 import re
-import json
 import html
 import subprocess
 import gettext
 from html.parser import HTMLParser
 import html.entities as entities
 
-import dbus
 import gi
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gio, Gtk, GObject, Gdk, GdkPixbuf, Pango, GLib
+from gi.repository import Gio, Gtk, GdkPixbuf, GLib
 
-from xapp.SettingsWidgets import SettingsStack, SettingsPage, SettingsWidget, SettingsLabel
-from SettingsWidgets import SidePage
-from Spices import Spice_Harvester, ThreadedTaskManager
+from xapp.SettingsWidgets import SettingsPage, SettingsWidget, SettingsLabel
+from Spices import ThreadedTaskManager
 
 home = os.path.expanduser('~')
 
@@ -95,7 +91,6 @@ def show_prompt(msg, window=None):
                                destroy_with_parent = True,
                                message_type = Gtk.MessageType.QUESTION,
                                buttons = Gtk.ButtonsType.YES_NO)
-    dialog.set_default_size(400, 200)
     esc = html.escape(msg)
     dialog.set_markup(esc)
     dialog.show_all()
@@ -546,9 +541,10 @@ class ManageSpicesPage(SettingsPage):
         elif self.collection_type == 'extension':
             msg = _("This will disable all active extensions. Are you sure you want to do this?")
         if show_prompt(msg, self.window):
+            sett = Gio.Settings.new('org.cinnamon')
             if self.collection_type != 'extension':
-                os.system(('gsettings reset org.cinnamon next-%s-id') % (self.collection_type))
-            os.system(('gsettings reset org.cinnamon enabled-%ss') % (self.collection_type))
+                sett.reset('next-%s-id' % self.collection_type)
+            sett.reset('enabled-%ss' % self.collection_type)
 
     def about(self, *args):
         row = self.list_box.get_selected_row()
@@ -961,4 +957,3 @@ class DownloadSpicesPage(SettingsPage):
 
         infobar.set_revealed(False)
         self.search_entry.grab_focus()
-

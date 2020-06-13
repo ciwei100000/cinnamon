@@ -6,6 +6,7 @@ import shlex
 import os
 import re
 import threading
+from json import loads
 
 from SettingsWidgets import SidePage
 from xapp.GSettingsWidgets import *
@@ -55,16 +56,13 @@ def getGraphicsInfos():
 
 def getDiskSize():
     disksize = 0
-    moreThanOnce = 0
-    for line in getProcessOut(("df", "-l")):
-        if line.startswith("/dev/"):
-            moreThanOnce += 1
-            disksize += float(line.split()[1])
+    out = getProcessOut(("lsblk", "--json", "--output", "size", "--bytes", "--nodeps"))
+    jsonobj = loads(''.join(out))
 
-    if (moreThanOnce > 1):
-        return disksize, True
-    else:
-        return disksize, False
+    for blk in jsonobj['blockdevices']:
+        disksize += int(blk['size'])
+
+    return disksize, (len(jsonobj['blockdevices']) > 1)
 
 
 def getProcInfos():
@@ -105,9 +103,10 @@ def createSystemInfos():
         title = ' '.join(contents[:2]) or "Manjaro Linux"
         infos.append((_("Operating System"), title))
     else:
-        s = '%s (%s)' % (' '.join(platform.linux_distribution()), arch)
+        import distro
+        s = '%s (%s)' % (' '.join(distro.linux_distribution()), arch)
         # Normalize spacing in distribution name
-        s = re.sub('\s{2,}', ' ', s)
+        s = re.sub(r'\s{2,}', ' ', s)
         infos.append((_("Operating System"), s))
     if 'CINNAMON_VERSION' in os.environ:
         infos.append((_("Cinnamon Version"), os.environ['CINNAMON_VERSION']))
@@ -123,7 +122,7 @@ def createSystemInfos():
         diskText = _("Hard Drives")
     else:
         diskText = _("Hard Drive")
-    infos.append((diskText, '%.1f %s' % ((diskSize / (1000*1000)), _("GB"))))
+    infos.append((diskText, '%.1f %s' % ((diskSize / (1000*1000*1000)), _("GB"))))
 
     cards = getGraphicsInfos()
     for card in cards:
@@ -193,4 +192,3 @@ class Module:
             success = subproc.wait_check_finish(result)
         except GLib.Error as e:
             print("upload-system-info failed: %s" % e.message)
-

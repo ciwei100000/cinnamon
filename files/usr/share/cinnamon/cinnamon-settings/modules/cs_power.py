@@ -1,9 +1,8 @@
 #!/usr/bin/python3
 
 import gi
-gi.require_version('CinnamonDesktop', '3.0')
 gi.require_version('UPowerGlib', '1.0')
-from gi.repository import CinnamonDesktop, Gdk, UPowerGlib
+from gi.repository import UPowerGlib
 
 from SettingsWidgets import SidePage
 from xapp.GSettingsWidgets import *
@@ -11,7 +10,7 @@ from xapp.GSettingsWidgets import *
 POWER_BUTTON_OPTIONS = [
     ("blank", _("Lock the screen")),
     ("suspend", _("Suspend")),
-    ("shutdown", _("Shutdown immediately")),
+    ("shutdown", _("Shut down immediately")),
     ("hibernate", _("Hibernate")),
     ("interactive", _("Ask what to do")),
     ("nothing", _("Do nothing"))
@@ -606,7 +605,7 @@ def get_available_options(up_client):
 
     lid_options = [
         ("suspend", _("Suspend")),
-        ("shutdown", _("Shutdown immediately")),
+        ("shutdown", _("Shut down immediately")),
         ("hibernate", _("Hibernate")),
         ("blank", _("Lock Screen")),
         ("nothing", _("Do nothing"))
@@ -615,14 +614,14 @@ def get_available_options(up_client):
     button_power_options = [
         ("blank", _("Lock Screen")),
         ("suspend", _("Suspend")),
-        ("shutdown", _("Shutdown immediately")),
+        ("shutdown", _("Shut down immediately")),
         ("hibernate", _("Hibernate")),
         ("interactive", _("Ask")),
         ("nothing", _("Do nothing"))
     ]
 
     critical_options = [
-        ("shutdown", _("Shutdown immediately")),
+        ("shutdown", _("Shut down immediately")),
         ("hibernate", _("Hibernate")),
         ("nothing", _("Do nothing"))
     ]

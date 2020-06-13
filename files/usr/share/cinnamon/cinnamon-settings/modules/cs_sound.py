@@ -3,7 +3,7 @@
 import gi
 gi.require_version('Cvc', '1.0')
 gi.require_version('Gtk', '3.0')
-from gi.repository import GLib, Gtk, Gdk, Cvc, GdkPixbuf, Gio
+from gi.repository import Gtk, Cvc, GdkPixbuf, Gio
 from SettingsWidgets import SidePage, GSettingsSoundFileChooser
 from xapp.GSettingsWidgets import *
 import dbus
@@ -489,7 +489,7 @@ class Module:
     comment = _("Manage sound settings")
 
     def __init__(self, content_box):
-        keywords = _("sound, media, music, speakers, audio")
+        keywords = _("sound, media, music, speakers, audio, microphone, headphone")
         self.sidePage = SidePage(_("Sound"), "cs-sound", keywords, content_box, module=self)
         self.sound_settings = Gio.Settings(CINNAMON_DESKTOP_SOUNDS)
 

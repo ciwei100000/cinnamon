@@ -34,17 +34,21 @@ class XAppStatusIcon {
             y_expand: true
         });
 
-        this.icon = new St.Icon();
+        this.icon_holder = new St.Bin();
+        this.iconSize = this.applet.getPanelIconSize(St.IconType.FULLCOLOR);
+
+        this.proxy.icon_size = this.iconSize;
 
         this.label = new St.Label({
             'y-align': St.Align.END,
         });
 
-        this.actor.add_actor(this.icon);
+        this.actor.add_actor(this.icon_holder);
         this.actor.add_actor(this.label);
 
         this.actor.connect('button-press-event', Lang.bind(this, this.onButtonPressEvent));
         this.actor.connect('button-release-event', Lang.bind(this, this.onButtonReleaseEvent));
+        this.actor.connect('scroll-event', (...args) => this.onScrollEvent(...args));
         this.actor.connect('enter-event', Lang.bind(this, this.onEnterEvent));
         this.actor.connect('leave-event', Lang.bind(this, this.onLeaveEvent));
 
@@ -99,33 +103,45 @@ class XAppStatusIcon {
 
     setIconName(iconName) {
         if (iconName) {
+            let type, icon;
+
             if (iconName.match(/symbolic/)) {
-                this.icon.set_icon_type(St.IconType.SYMBOLIC);
+                type = St.IconType.SYMBOLIC;
             }
             else {
-                this.icon.set_icon_type(St.IconType.FULLCOLOR);
+                type = St.IconType.FULLCOLOR;
             }
 
             this.iconName = iconName;
-            this.icon.set_icon_size(this.applet.getPanelIconSize(this.icon.get_icon_type()));
+            this.iconSize = this.applet.getPanelIconSize(type);
+            this.proxy.icon_size = this.iconSize;
 
-            if (iconName.includes("/")) {
-                let file = Gio.File.new_for_path(iconName);
+            // for now, assume symbolic icons would always be square/suitable for an StIcon.
+            // TODO: Need to handle symbolic filenames also.
 
-                let gicon = Gio.FileIcon.new(file);
-
-                this.icon.set_gicon(gicon);
+            if (iconName.includes("/") && type != St.IconType.SYMBOLIC) {
+                St.TextureCache.get_default().load_image_from_file_async(iconName,
+                                                                         /* If top/bottom panel, allow the image to expand horizontally,
+                                                                          * otherwise, restrict it to a square (but keep aspect ratio.) */
+                                                                         this.actor.vertical ? this.iconSize : -1,
+                                                                         this.iconSize,
+                                                                         (...args)=>this._onImageLoaded(...args));
+                return;
             }
             else {
-                this.icon.set_icon_name(iconName);
+                icon = new St.Icon( { "icon-type": type, "icon-size": this.iconSize, "icon-name": iconName });
             }
 
-            this.icon.show();
+            this.icon_holder.child = icon;
         }
         else {
             this.iconName = null;
-            this.icon.hide();
+            this.icon_holder.hide();
         }
+    }
+
+    _onImageLoaded(cache, actor, data=null) {
+        this.icon_holder.child = actor;
     }
 
     setTooltipText(tooltipText) {
@@ -160,11 +176,11 @@ class XAppStatusIcon {
     }
 
     onEnterEvent(actor, event) {
-        this.applet.set_applet_tooltip(this.tooltipText);
+        this.applet.set_applet_tooltip(this.tooltipText, true);
     }
 
     onLeaveEvent(actor, event) {
-        this.applet.set_applet_tooltip("");
+        this.applet.set_applet_tooltip("", true);
     }
 
     getEventPositionInfo(actor) {
@@ -224,6 +240,31 @@ class XAppStatusIcon {
         this.proxy.call_button_release(x, y, event.get_button(), event.get_time(), o, null, null);
 
         return Clutter.EVENT_STOP;
+    }
+
+    onScrollEvent(actor, event) {
+        let direction = event.get_scroll_direction();
+
+        let x_dir = XApp.ScrollDirection.UP;
+        let delta = 0;
+
+        if (direction != Clutter.ScrollDirection.SMOOTH) {
+            if (direction == Clutter.ScrollDirection.UP) {
+                x_dir = XApp.ScrollDirection.UP;
+                delta = -1;
+            } else if (direction == Clutter.ScrollDirection.DOWN) {
+                x_dir = XApp.ScrollDirection.DOWN;
+                delta = 1;
+            } else if (direction == Clutter.ScrollDirection.LEFT) {
+                x_dir = XApp.ScrollDirection.LEFT;
+                delta = -1;
+            } else if (direction == Clutter.ScrollDirection.RIGHT) {
+                x_dir = XApp.ScrollDirection.RIGHT;
+                delta = 1;
+            }
+        }
+
+        this.proxy.call_scroll(delta, x_dir, event.get_time(), null, null);
     }
 
     destroy() {

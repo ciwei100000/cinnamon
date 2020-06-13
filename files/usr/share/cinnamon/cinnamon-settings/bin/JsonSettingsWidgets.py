@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from gi.repository import Gio, GObject
+from gi.repository import Gio
 from xapp.SettingsWidgets import *
 from SettingsWidgets import SoundFileChooser, TweenChooser, EffectChooser, DateChooser, TimeChooser, Keybinding
 from xapp.GSettingsWidgets import CAN_BACKEND as px_can_backend
@@ -239,7 +239,7 @@ class JSONSettingsRevealer(Gtk.Revealer):
                 break
 
         if self.key is None:
-            if key[:1] is '!':
+            if key[:1] == '!':
                 self.invert = True
                 self.key = key[1:]
             else:
@@ -269,6 +269,8 @@ class JSONSettingsRevealer(Gtk.Revealer):
 
 class JSONSettingsBackend(object):
     def attach(self):
+        self._saving = False
+
         if hasattr(self, "set_rounding") and self.settings.has_property(self.key, "round"):
             self.set_rounding(self.settings.get_property(self.key, "round"))
         if hasattr(self, "bind_object"):
@@ -280,12 +282,14 @@ class JSONSettingsBackend(object):
                                self.map_get if hasattr(self, "map_get") else None,
                                self.map_set if hasattr(self, "map_set") else None)
         else:
-            self.settings.listen(self.key, self.on_setting_changed)
+            self.settings.listen(self.key, self._settings_changed_callback)
             self.on_setting_changed()
             self.connect_widget_handlers()
 
     def set_value(self, value):
+        self._saving = True
         self.settings.set_value(self.key, value)
+        self._saving = False
 
     def get_value(self):
         return self.settings.get_value(self.key)
@@ -294,6 +298,10 @@ class JSONSettingsBackend(object):
         min = self.settings.get_property(self.key, "min")
         max = self.settings.get_property(self.key, "max")
         return [min, max]
+
+    def _settings_changed_callback(self, *args):
+        if not self._saving:
+            self.on_setting_changed(*args)
 
     def on_setting_changed(self, *args):
         raise NotImplementedError("SettingsWidget class must implement on_setting_changed().")

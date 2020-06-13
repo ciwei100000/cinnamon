@@ -34,12 +34,10 @@ Build-Depends:
  librsvg2-dev,
  libsoup2.4-dev,
  libstartup-notification0-dev (>= 0.11),
- libwnck-dev,
  libxfixes-dev (>= 1:5.0),
- libxss-dev,
  python3:any,
 Standards-Version: 3.9.5
-Homepage: http://cinnamon.linuxmint.com
+Homepage: https://projects.linuxmint.com/cinnamon/
 
 Package: cinnamon
 Architecture: any
@@ -71,6 +69,7 @@ Depends:
  gir1.2-upowerglib-1.0,
  gir1.2-xapp-1.0 (>= 1.0.4~),
  gkbd-capplet,
+ adwaita-icon-theme,
  gsettings-desktop-schemas (>= 0.1.7),
  iso-flag-png,
  libcanberra-pulse,
@@ -87,6 +86,7 @@ Depends:
  policykit-1-gnome,
  python3,
  python3-dbus,
+ python3-distro,
  python3-gi,
  python3-gi-cairo,
  python3-pam | python3-pampy,
@@ -94,8 +94,9 @@ Depends:
  python3-pil,
  python3-pyinotify,
  python3-setproctitle,
- python3-tinycss,
+ python3-tinycss2 | python3-tinycss,
  python3-tz,
+ streamer,
  wget,
  xapps-common,
  ${gir:Depends},
@@ -119,7 +120,7 @@ Depends:
  gettext,
  gir1.2-cinnamondesktop-3.0,
  gir1.2-meta-muffin-0.0,
- gir1.2-nemo-3.0 (>= 4.4),
+ gir1.2-nemo-3.0 (>= 4.6),
  gvfs-bin,
  gir1.2-timezonemap-1.0,
  xdg-utils,

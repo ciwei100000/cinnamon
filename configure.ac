@@ -1,5 +1,5 @@
 AC_PREREQ(2.63)
-AC_INIT([cinnamon],[4.4.8],[https://github.com/linuxmint/Cinnamon/issues],[cinnamon])
+AC_INIT([cinnamon],[4.6.3],[https://github.com/linuxmint/Cinnamon/issues],[cinnamon])
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SRCDIR([src/cinnamon-global.c])
@@ -56,6 +56,13 @@ else
 fi
 
 AM_CONDITIONAL(BUILD_RECORDER, $build_recorder)
+if test "x$build_recorder" = "xyes"; then
+  BUILD_RECORDER_XML_START="-->"
+  BUILD_RECORDER_XML_END="<!--"
+else
+  BUILD_RECORDER_XML_START=""
+  BUILD_RECORDER_XML_END=""
+fi
 
 CLUTTER_MIN_VERSION=0
 GOBJECT_INTROSPECTION_MIN_VERSION=0.9.2

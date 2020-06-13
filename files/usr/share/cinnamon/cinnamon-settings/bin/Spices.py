@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 try:
-    import gettext
     from gi.repository import Gio, Gtk, GObject, Gdk, GdkPixbuf, GLib
     import tempfile
     import os
@@ -459,6 +458,7 @@ class Spice_Harvester(GObject.Object):
         if not self.themes:
             enabled_list = self.settings.get_strv(self.enabled_key)
             for item in enabled_list:
+                item = item.replace("!", "")
                 if uuid in item.split(":"):
                     enabled_count += 1
         elif self.settings.get_string(self.enabled_key) == uuid:

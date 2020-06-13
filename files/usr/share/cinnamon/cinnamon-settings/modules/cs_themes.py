@@ -2,7 +2,7 @@
 
 import os
 
-from gi.repository.Gtk import SizeGroup, SizeGroupMode
+from gi.repository import Gtk
 
 from xapp.GSettingsWidgets import *
 from CinnamonGtkSettings import CssRange, CssOverrideSwitch, GtkSettingsSwitch, PreviewWidget, Gtk2ScrollbarSizeEditor
@@ -40,6 +40,7 @@ class Module:
         self.window = None
         sidePage = SidePage(_("Themes"), self.icon, self.keywords, content_box, module=self)
         self.sidePage = sidePage
+        self.refreshing = False # flag to ensure we only refresh once at any given moment
 
     def on_module_selected(self):
         if not self.loaded:
@@ -95,6 +96,12 @@ class Module:
 
             widget = GSettingsSwitch(_("Show icons on buttons"), "org.cinnamon.settings-daemon.plugins.xsettings", "buttons-have-icons")
             settings.add_row(widget)
+
+            try:
+                import tinycss2
+            except:
+                self.refresh()
+                return
 
             settings = page.add_section(_("Scrollbar behavior"))
 
@@ -170,7 +177,10 @@ class Module:
             self.gtk2_scrollbar_editor.set_size(widget.get_value())
 
     def on_file_changed(self, file, other, event, data):
-        self.refresh()
+        if self.refreshing:
+            return
+        self.refreshing = True
+        GLib.timeout_add_seconds(5, self.refresh)
 
     def refresh(self):
         choosers = []
@@ -190,6 +200,7 @@ class Module:
             callback = chooser[3]
             payload = (chooser_obj, path_suffix, themes, callback)
             self.refresh_chooser(payload)
+        self.refreshing = False
 
     def refresh_chooser(self, payload):
         (chooser, path_suffix, themes, callback) = payload

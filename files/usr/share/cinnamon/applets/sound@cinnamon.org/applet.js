@@ -1,4 +1,5 @@
 const Applet = imports.ui.applet;
+const Lang = imports.lang;
 const Mainloop = imports.mainloop;
 const Gio = imports.gi.Gio;
 const Interfaces = imports.misc.interfaces;
@@ -579,20 +580,12 @@ class Player extends PopupMenu.PopupMenuSection {
         this.controls.add_actor(this._stopButton.getActor());
         this.controls.add_actor(this._nextButton.getActor());
         trackControls.set_child(this.controls);
-        if (this._mediaServerPlayer.LoopStatus) {
-            this._loopButton = new ControlButton("media-playlist-consecutive", _("Consecutive Playing"), () => this._toggleLoopStatus());
-            this._loopButton.actor.visible = this._applet.extendedPlayerControl;
-            this.controls.add_actor(this._loopButton.getActor());
 
-            this._setLoopStatus(this._mediaServerPlayer.LoopStatus);
-        }
-        if (this._mediaServerPlayer.Shuffle !== undefined) {
-            this._shuffleButton = new ControlButton("media-playlist-shuffle", _("No Shuffle"), () => this._toggleShuffle());
-            this._shuffleButton.actor.visible = this._applet.extendedPlayerControl;
-            this.controls.add_actor(this._shuffleButton.getActor());
+        this._loopButton = new ControlButton("media-playlist-consecutive", _("Consecutive Playing"), () => this._toggleLoopStatus());
+        this.controls.add_actor(this._loopButton.getActor());
 
-            this._setShuffle(this._mediaServerPlayer.Shuffle);
-        }
+        this._shuffleButton = new ControlButton("media-playlist-shuffle", _("No Shuffle"), () => this._toggleShuffle());
+        this.controls.add_actor(this._shuffleButton.getActor());
 
         // Position slider
         this._seeker = new Seeker(this._mediaServerPlayer, this._prop, this._name.toLowerCase());
@@ -615,6 +608,9 @@ class Player extends PopupMenu.PopupMenuSection {
             if (props.Shuffle)
                 this._setShuffle(props.Shuffle.unpack());
         });
+
+        this._setLoopStatus(this._mediaServerPlayer.LoopStatus);
+        this._setShuffle(this._mediaServerPlayer.Shuffle);
 
         //get the desktop entry and pass it to the applet
         this._prop.GetRemote(MEDIA_PLAYER_2_NAME, "DesktopEntry", (result, error) => {
@@ -767,6 +763,8 @@ class Player extends PopupMenu.PopupMenuSection {
     }
 
     _setLoopStatus(status) {
+        this._loopButton.actor.visible = this._applet.extendedPlayerControl && this._mediaServerPlayer.LoopStatus;
+
         if(status === "None")
             this._loopButton.setData("media-playlist-consecutive-symbolic", _("Consecutive Playing"));
         else if(status === "Track")
@@ -782,6 +780,8 @@ class Player extends PopupMenu.PopupMenuSection {
     }
 
     _setShuffle(status) {
+        this._shuffleButton.actor.visible = this._applet.extendedPlayerControl && this._mediaServerPlayer.Shuffle;
+
         this._shuffleButton.setData("media-playlist-shuffle", status? _("Shuffle") : _("No Shuffle"));
         this._shuffleButton.setActive(status);
     }
@@ -811,8 +811,8 @@ class Player extends PopupMenu.PopupMenuSection {
     }
 
     onSettingsChanged() {
-        this._loopButton.actor.visible = this._applet.extendedPlayerControl;
-        this._shuffleButton.actor.visible = this._applet.extendedPlayerControl;
+        this._loopButton.actor.visible = this._applet.extendedPlayerControl && this._mediaServerPlayer.LoopStatus;
+        this._shuffleButton.actor.visible = this._applet.extendedPlayerControl && this._mediaServerPlayer.Shuffle;
     }
 
     destroy() {
@@ -834,11 +834,11 @@ class MediaPlayerLauncher extends PopupMenu.PopupBaseMenuItem {
         this.addActor(this.label);
         this._icon = app.create_icon_texture(ICON_SIZE);
         this.addActor(this._icon, { expand: false });
+        this.connect("activate", (event) => this._onActivate(event).get_time());
     }
 
-    //note: shadows base method and prevents "activate" emission
-    activate(event, keepMenu) {
-        this._app.activate_full(-1, event.get_time());
+    _onActivate(time) {
+        this._app.activate_full(-1, time);
     }
 }
 
@@ -869,10 +869,13 @@ class CinnamonSoundApplet extends Applet.TextIconApplet {
 
         this.settings.bind("_knownPlayers", "_knownPlayers");
         if (this.hideSystray) this.registerSystrayIcons();
+        
+        this.settings.bind("keyOpen", "keyOpen", this._setKeybinding);
 
         this.menuManager = new PopupMenu.PopupMenuManager(this);
         this.menu = new Applet.AppletPopupMenu(this, orientation);
         this.menuManager.addMenu(this.menu);
+        this._setKeybinding();
 
         this.set_applet_icon_symbolic_name('audio-x-generic');
 
@@ -996,6 +999,10 @@ class CinnamonSoundApplet extends Applet.TextIconApplet {
 
         this._sound_settings.connect("changed::" + MAXIMUM_VOLUME_KEY, () => this._on_sound_settings_change());
     }
+    
+    _setKeybinding() {
+        Main.keybindingManager.addHotKey("sound-open-" + this.instance_id, this.keyOpen, Lang.bind(this, this._openMenu));
+    }
 
     _on_sound_settings_change () {
         this._volumeMax = this._sound_settings.get_int(MAXIMUM_VOLUME_KEY) / 100 * this._control.get_vol_max_norm();
@@ -1018,6 +1025,7 @@ class CinnamonSoundApplet extends Applet.TextIconApplet {
     }
 
     on_applet_removed_from_panel () {
+        Main.keybindingManager.removeHotKey("sound-open-" + this.instance_id);
         if (this.hideSystray)
             this.unregisterSystrayIcons();
         if (this._iconTimeoutId) {
@@ -1031,6 +1039,10 @@ class CinnamonSoundApplet extends Applet.TextIconApplet {
     }
 
     on_applet_clicked(event) {
+        this._openMenu();
+    }
+    
+    _openMenu() {
         this.menu.toggle();
     }
 
@@ -1309,15 +1321,15 @@ class CinnamonSoundApplet extends Applet.TextIconApplet {
     }
 
     _showFixedElements() {
-        // The list to use when switching between active players
-        this._chooseActivePlayerItem = new PopupMenu.PopupSubMenuMenuItem(_("Choose player controls"));
-        this._chooseActivePlayerItem.actor.hide();
-        this.menu.addMenuItem(this._chooseActivePlayerItem);
-
         // The launch player list
         this._launchPlayerItem = new PopupMenu.PopupSubMenuMenuItem(_("Launch player"));
         this.menu.addMenuItem(this._launchPlayerItem);
         this._updateLaunchPlayer();
+        
+        // The list to use when switching between active players
+        this._chooseActivePlayerItem = new PopupMenu.PopupSubMenuMenuItem(_("Choose player controls"));
+        this._chooseActivePlayerItem.actor.hide();
+        this.menu.addMenuItem(this._chooseActivePlayerItem);
 
         //between these two separators will be the player MenuSection (position 3)
         this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
@@ -1356,7 +1368,7 @@ class CinnamonSoundApplet extends Applet.TextIconApplet {
 
     _updatePlayerMenuItems() {
         if (this.playerControl && this._activePlayer) {
-            this._launchPlayerItem.actor.hide();
+            this._launchPlayerItem.actor.show();
             this._chooseActivePlayerItem.actor.show();
 
             // Show a dot on the active player in the switching menu
@@ -1376,6 +1388,7 @@ class CinnamonSoundApplet extends Applet.TextIconApplet {
                 this._launchPlayerItem.actor.show();
             } else {
                 this._launchPlayerItem.actor.hide();
+                this._chooseActivePlayerItem.actor.hide();
             }
         }
     }
@@ -1387,7 +1400,7 @@ class CinnamonSoundApplet extends Applet.TextIconApplet {
         this._activePlayer = player;
         if (this.playerControl && this._activePlayer != null) {
             let menuItem = this._players[player];
-            this.menu.addMenuItem(menuItem, 1);
+            this.menu.addMenuItem(menuItem, 2);
         }
 
         this._updatePlayerMenuItems();

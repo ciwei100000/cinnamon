@@ -9,7 +9,6 @@
  * @lookingGlass (LookingGlass.Melange): The looking glass object
  * @wm (WindowManager.WindowManager): The window manager
  * @messageTray (MessageTray.MessageTray): The mesesage tray
- * @indicatorManager (IndicatorManager.IndicatorManager): The indicator manager
  * @notificationDaemon (NotificationDaemon.NotificationDaemon): The notification daemon
  * @windowAttentionHandler (WindowAttentionHandler.WindowAttentionHandler): The window attention handler
  * @recorder (Cinnamon.Recorder): The recorder
@@ -81,6 +80,7 @@ const Meta = imports.gi.Meta;
 const Cinnamon = imports.gi.Cinnamon;
 const St = imports.gi.St;
 const GObject = imports.gi.GObject;
+const XApp = imports.gi.XApp;
 const PointerTracker = imports.misc.pointerTracker;
 
 const SoundManager = imports.ui.soundManager;
@@ -92,7 +92,6 @@ const DeskletManager = imports.ui.deskletManager;
 const ExtensionSystem = imports.ui.extensionSystem;
 const Keyboard = imports.ui.keyboard;
 const MessageTray = imports.ui.messageTray;
-const IndicatorManager = imports.ui.indicatorManager;
 const OsdWindow = imports.ui.osdWindow;
 const Overview = imports.ui.overview;
 const Expo = imports.ui.expo;
@@ -114,6 +113,7 @@ const Keybindings = imports.ui.keybindings;
 const Settings = imports.ui.settings;
 const Systray = imports.ui.systray;
 const Accessibility = imports.ui.accessibility;
+const ModalDialog = imports.ui.modalDialog;
 const {readOnlyError} = imports.ui.environment;
 const {installPolyfills} = imports.ui.overrides;
 
@@ -137,7 +137,6 @@ var lookingGlass = null;
 var wm = null;
 var a11yHandler = null;
 var messageTray = null;
-var indicatorManager = null;
 var notificationDaemon = null;
 var windowAttentionHandler = null;
 var recorder = null;
@@ -172,6 +171,8 @@ var software_rendering = false;
 var popup_rendering_actor = null;
 
 var xlet_startup_error = false;
+
+var gpu_offload_supported = false;
 
 var RunState = {
     INIT : 0,
@@ -255,7 +256,6 @@ function _initUserSession() {
     global.screen.override_workspace_layout(Meta.ScreenCorner.TOPLEFT, false, 1, -1);
 
     systrayManager = new Systray.SystrayManager();
-    indicatorManager = new IndicatorManager.IndicatorManager();
 
     Meta.keybindings_set_custom_handler('panel-run-dialog', function() {
         getRunDialog().open();
@@ -336,6 +336,7 @@ function start() {
 
     soundManager = new SoundManager.SoundManager();
 
+    /* note: This call will initialize St.TextureCache */
     themeManager = new ThemeManager.ThemeManager();
 
     settingsManager = new Settings.SettingsManager();
@@ -394,7 +395,8 @@ function start() {
 
     let startupAnimationEnabled = global.settings.get_boolean("startup-animation");
 
-    let do_animation = startupAnimationEnabled &&
+    let do_animation = !global.session_running &&
+                        startupAnimationEnabled &&
                        !GLib.getenv('CINNAMON_SOFTWARE_RENDERING') &&
                        !GLib.getenv('CINNAMON_2D');
 
@@ -456,6 +458,13 @@ function start() {
     workspace_names = wmSettings.get_strv("workspace-names");
 
     global.display.connect('gl-video-memory-purged', loadTheme);
+
+    try {
+        gpu_offload_supported = XApp.util_gpu_offload_supported()
+    } catch (e) {
+        global.logWarning("Could not check for gpu offload support - maybe xapps isn't up to date.");
+        gpu_offload_supported = false;
+    }
 
     Promise.all([
         AppletManager.init(),
@@ -1526,4 +1535,14 @@ function getTabList(workspaceOpt, screenOpt) {
         }
     }
     return windows;
+}
+
+function restartCinnamon(showOsd = false) {
+    if (showOsd) {
+        let dialog = new ModalDialog.InfoOSD(_("Restarting Cinnamon..."));
+        dialog.actor.add_style_class_name('restart-osd');
+        dialog.show();
+    }
+
+    global.reexec_self();
 }

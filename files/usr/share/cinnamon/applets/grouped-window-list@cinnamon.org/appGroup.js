@@ -71,17 +71,19 @@ class AppGroup {
             verticalThumbs: false,
             groupReady: false,
             thumbnailMenuEntered: false,
-            fileDrag: false
+            fileDrag: false,
+            pressed: true
         });
 
         this.groupState.connect({
             isFavoriteApp: () => this.handleFavorite(true),
             getActor: () => this.actor,
-            launchNewInstance: () => this.launchNewInstance(),
+            launchNewInstance: (...args) => this.launchNewInstance(...args),
             checkFocusStyle: () => this.checkFocusStyle()
         });
 
         this.signals = new SignalManager(null);
+        this.appKeyTimeout = 0;
 
         // TODO: This needs to be in state so it can be updated more reliably.
         this.labelVisible = this.state.settings.titleDisplay !== TitleDisplay.None && this.state.isHorizontal;
@@ -91,7 +93,7 @@ class AppGroup {
             name: 'appButton',
             style_class: 'grouped-window-list-item-box',
             important: true,
-            reactive: true,
+            reactive: !this.state.panelEditMode,
             can_focus: true,
             track_hover: true
         });
@@ -148,6 +150,7 @@ class AppGroup {
         this.groupState.set({tooltip: new Tooltips.PanelItemTooltip({actor: this.actor}, '', this.state.orientation)});
 
         this._draggable = new DND._Draggable(this.actor);
+        this._draggable.inhibit = !this.state.settings.enableDragging;
 
         this.signals.connect(this.actor, 'get-preferred-width', (...args) => this.getPreferredWidth(...args));
         this.signals.connect(this.actor, 'get-preferred-height', (...args) => this.getPreferredHeight(...args));
@@ -494,6 +497,8 @@ class AppGroup {
     }
 
     onLeave() {
+        this.groupState.pressed = false;
+
         if (this.state.panelEditMode) return false;
 
         if (this.hoverMenu) this.hoverMenu.onMenuLeave();
@@ -674,13 +679,26 @@ class AppGroup {
         this.badge.show();
     }
 
-    launchNewInstance() {
-        this.groupState.app.open_new_window(-1);
+    launchNewInstance(offload=false) {
+        if (offload) {
+            try {
+                this.groupState.app.launch_offloaded(0, [], -1);
+            } catch (e) {
+                logError(e, "Could not launch app with dedicated gpu: ");
+            }
+        } else {
+            this.groupState.app.open_new_window(-1);
+        }
+
         this.animate();
     }
 
     onAppButtonRelease(actor, event) {
         this.state.trigger('clearDragPlaceholder');
+
+        if (!this.groupState.pressed) {
+            return;
+        }
 
         let button = event.get_button();
         let nWindows = this.groupState.metaWindows.length;
@@ -741,7 +759,24 @@ class AppGroup {
                 return;
             }
             if (this.state.settings.leftClickAction === 3 && nWindows > 1) {
-                this.state.trigger('cycleWindows', null, this.actor._delegate);
+                let foundActive = false;
+                for (let i = 0, len = nWindows; i < len; i++) {
+                    if (
+                        this.groupState.lastFocused &&
+                        this.groupState.metaWindows[i] === this.groupState.lastFocused
+                    ) {
+                        if (this.groupState.metaWindows[i].appears_focused) {
+                            this.state.trigger("cycleWindows", null, this.actor._delegate);
+                        } else {
+                            handleMinimizeToggle(this.groupState.metaWindows[i]);
+                        }
+                        foundActive = true;
+                        break;
+                    }
+                }
+                if (!foundActive) {
+                    handleMinimizeToggle(this.groupState.metaWindows[0]);
+                }
                 return;
             }
             if (this.hoverMenu) this.hoverMenu.shouldOpen = false;
@@ -780,8 +815,10 @@ class AppGroup {
 
     onAppButtonPress(actor, event) {
         let button = event.get_button();
+        this.groupState.pressed = true;
 
         if (button === 3) return true;
+
         return false;
     }
 
@@ -806,7 +843,9 @@ class AppGroup {
                     this.appKeyTimeout = 0;
                     return;
                 }
-                this.hoverMenu.close(true);
+                if (this.hoverMenu) {
+                    this.hoverMenu.close(true);
+                }
                 this.appKeyTimeout = 0;
             }, this.state.settings.showAppsOrderTimeout);
         }

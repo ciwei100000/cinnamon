@@ -163,7 +163,19 @@ NotificationDaemon.prototype = {
                  bitsPerSample, nChannels, data] = hints['image-data'];
             return textureCache.load_from_raw(data, hasAlpha, width, height, rowStride, size);
         } else if (hints['image-path']) {
-            return textureCache.load_uri_async(GLib.filename_to_uri(hints['image-path'], null), size, size);
+            let path = hints['image-path'];
+            if (GLib.path_is_absolute (path)) {
+                return textureCache.load_uri_async(GLib.filename_to_uri(path, null), size, size);
+            } else {
+                let icon_type = St.IconType.FULLCOLOR;
+                if (path.search("-symbolic") != -1) {
+                    icon_type = St.IconType.SYMBOLIC;
+                }
+
+                return new St.Icon({ icon_name: path,
+                                     icon_type: icon_type,
+                                     icon_size: size });
+            }
         } else {
             let stockIcon;
             switch (hints.urgency) {
@@ -412,7 +424,7 @@ NotificationDaemon.prototype = {
         if (notification == null) {    // Create a new notification!
             notification = new MessageTray.Notification(source, summary, body,
                                                         { icon: iconActor,
-                                                          bannerMarkup: true,
+                                                          bodyMarkup: true,
                                                           silent: hints['suppress-sound'] });
             ndata.notification = notification;
             notification.connect('destroy', Lang.bind(this,
@@ -449,8 +461,7 @@ NotificationDaemon.prototype = {
                 }));
         } else {
             notification.update(summary, body, { icon: iconActor,
-                                                 bannerMarkup: true,
-                                                 clear: true,
+                                                 bodyMarkup: true,
                                                  silent: hints['suppress-sound'] });
         }
 
@@ -471,6 +482,8 @@ NotificationDaemon.prototype = {
         } else {
             notification.unsetImage();
         }
+
+        notification.clearButtons();
 
         if (actions.length) {
             notification.setUseActionIcons(hints.maybeGet('action-icons') == true);

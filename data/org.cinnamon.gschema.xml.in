@@ -428,32 +428,6 @@
       </_description>
     </key>
     
-    <key type="i" name="workspace-osd-duration">
-      <default>400</default>
-      <_summary>Duration of Workspace OSD (in milliseconds)</_summary>
-      <_description>
-       Duration of the OSD (in milliseconds)    
-      </_description>
-    </key>
-    
-    <key type="i" name="workspace-osd-x">
-      <range min="5" max="95" />
-      <default>50</default>
-      <_summary>Workspace horizontal position (in percent of the monitor's width)</_summary>
-      <_description>
-       Workspace horizontal position (in percent of the monitor's width)   
-      </_description>
-    </key>
-    
-    <key type="i" name="workspace-osd-y">
-      <range min="5" max="95" />
-      <default>50</default>
-      <_summary>Workspace vertical position (in percent of the monitor's height)</_summary>
-      <_description>
-       Workspace vertical position (in percent of the monitor's height)
-      </_description>
-    </key>
-    
     <key name="workspace-osd-visible" type="b">
       <default>true</default>
       <_summary>Enable or disable the workspace OSD</_summary>
@@ -640,19 +614,9 @@
       </_description>
     </key>
 
-    <key type="i" name="active-display-scale">
-      <range min="1" max="4" />
-      <default>1</default>
-      <summary>Utility read-only setting used by st library</summary>
-      <description>Current scale factor</description>
-    </key>
-
     <key name="enable-indicators" type="b">
       <default>false</default>
-      <_summary>Enable support for indicators</_summary>
-      <_description>
-        Whether to support indicators
-      </_description>
+      <_summary>not used</_summary>
     </key>
 
     <key type="as" name="demands-attention-ignored-wm-classes">
