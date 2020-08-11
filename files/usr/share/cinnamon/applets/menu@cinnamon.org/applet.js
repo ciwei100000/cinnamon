@@ -602,6 +602,10 @@ class PlaceButton extends SimpleMenuItem {
         if (fileIndex !== -1)
             selectedAppId = selectedAppId.substr(fileIndex + 7);
 
+        if (selectedAppId === "home" || selectedAppId === "desktop" || selectedAppId === "connect") {
+        	selectedAppId = place.name
+        }
+
         super(applet, { name: place.name,
                         description: selectedAppId,
                         type: 'place',
@@ -1233,6 +1237,12 @@ class CinnamonMenuApplet extends Applet.TextIconApplet {
 
             this.lastSelectedCategory = null;
 
+            /* This is a workaround to prevent selectedAppBox from changing height when no height value is set
+             * in the .css style and thus causing the menu above to jump up and down. This has no effect when a
+             * height value is set in the .css style as get_preferred_height() returns this value in this case*/
+            this.selectedAppBox.set_height(-1); //unset previously set height
+            this.selectedAppBox.set_height(this.selectedAppBox.get_preferred_height(-1)[1]);
+            
             let n = Math.min(this._applicationsButtons.length,
                              INITIAL_BUTTON_LOAD);
             for (let i = 0; i < n; i++) {
@@ -1280,6 +1290,32 @@ class CinnamonMenuApplet extends Applet.TextIconApplet {
         }
     }
 
+    // Override js/applet.js so _updateIconAndLabel doesn't have to fight with size changes
+    // from the panel configuration. This gets called any time set_applet_icon() variants are
+    // called.
+    _setStyle() {
+        let icon_type = this._applet_icon.get_icon_type();
+        let size;
+
+        if (this.menuCustom) {
+            size = Math.min(this.menuIconSize, this.panel.height);
+        } else {
+            size = this.getPanelIconSize(icon_type);
+        }
+
+        if (icon_type === St.IconType.FULLCOLOR) {
+            this._applet_icon.set_style_class_name('applet-icon');
+        } else {
+            this._applet_icon.set_style_class_name('system-status-icon');
+        }
+
+        this._applet_icon.set_icon_size(size);
+    }
+
+    on_panel_icon_size_changed() {
+        this._updateIconAndLabel();
+    }
+
     _updateIconAndLabel(){
         try {
             if (this.menuCustom) {
@@ -1296,7 +1332,6 @@ class CinnamonMenuApplet extends Applet.TextIconApplet {
                     else
                         this.set_applet_icon_name(this.menuIcon);
                 }
-                this._applet_icon.set_icon_size(this.menuIconSize);
             } else {
                 let icon_name = global.settings.get_string('app-menu-icon-name');
                 if (icon_name.search("-symbolic") != -1) {
@@ -2183,7 +2218,7 @@ class CinnamonMenuApplet extends Applet.TextIconApplet {
             });
 
             let button = new SimpleMenuItem(this, { name: _("Clear list"),
-                                                    description: ("Clear all recent documents"),
+                                                    description: _("Clear all recent documents"),
                                                     type: 'recent-clear',
                                                     styleClass: 'menu-application-button' });
             button.addIcon(22, 'edit-clear', null, true);
@@ -2471,11 +2506,6 @@ class CinnamonMenuApplet extends Applet.TextIconApplet {
         this.mainBox._delegate = null;
 
         this.selectedAppBox = new St.BoxLayout({ style_class: 'menu-selected-app-box', vertical: true });
-
-        if (this.selectedAppBox.peek_theme_node() == null ||
-            this.selectedAppBox.get_theme_node().get_length('height') == 0)
-            this.selectedAppBox.set_height(30 * global.ui_scale);
-
         this.selectedAppTitle = new St.Label({ style_class: 'menu-selected-app-title', text: "" });
         this.selectedAppBox.add_actor(this.selectedAppTitle);
         this.selectedAppDescription = new St.Label({ style_class: 'menu-selected-app-description', text: "" });

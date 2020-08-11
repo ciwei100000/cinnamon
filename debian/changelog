@@ -1,3 +1,70 @@
+cinnamon (4.6.7) ulyana; urgency=medium
+
+  [ Michael Webster ]
+  * xapp-status@cinnamon.org: Fix visibility for items when an icon is set after having it explicitly un-set.
+  * keybindings: revisit #9375, keybindings not updating.
+
+  [ Vincent Vermeulen ]
+  * Correct Disks icon in System Settings
+
+  [ Michael Webster ]
+  * keyboard applet: Account for the ui scale when adjusting the flag icon size.
+
+ -- Clement Lefebvre <root@linuxmint.com>  Tue, 11 Aug 2020 12:38:07 +0100
+
+cinnamon (4.6.6) ulyana; urgency=medium
+
+  [ Michael Webster ]
+  * cs_keyboard.py: Reverse the custom keybinding path suffix each time a change occurs in the subfolders.
+  * cinnamon-app-system.c: Ignore apps in the menu tree that don't have an appinfo instance.
+
+ -- Clement Lefebvre <root@linuxmint.com>  Wed, 24 Jun 2020 13:45:07 +0100
+
+cinnamon (4.6.5) ulyana; urgency=medium
+
+  [ Michael Webster ]
+  * cs_calendar.py: Don't try to set an invalid timezone on the tz selector.
+
+  [ Clement Lefebvre ]
+  * Users and groups: Add missing vendor info in polkit policy
+
+  [ Michael Webster ]
+  * cs_desktop.py: move gi.require call into the try/except block for importing nemo.
+
+  [ NikoKrause ]
+  * menu applet: add missing l10n string (#9377)
+
+  [ fredcw ]
+  * cinnamon theme: use em's instead of px's (#9370)
+
+  [ sidorsett ]
+  * Add (non)work-day style classes to the header (#9362)
+
+  [ Clement Lefebvre ]
+  * l10n: Update POT
+
+ -- Clement Lefebvre <root@linuxmint.com>  Sun, 21 Jun 2020 13:40:45 +0100
+
+cinnamon (4.6.4) ulyana; urgency=medium
+
+  [ fredcw ]
+  * Update applet.js
+
+  [ yparitcher ]
+  * Fix workspace OSD
+
+  [ Leigh Scott ]
+  * Remove encoding=None
+
+  [ Michael Webster ]
+  * menu@cinnamon.org: Fix interference between panel icon size handling and the menu applet's icon handling.
+
+  [ Clement Lefebvre ]
+  * Menu applet: Fix description for standard places
+  * Notification applet: Fix ngettext translations
+
+ -- Clement Lefebvre <root@linuxmint.com>  Wed, 17 Jun 2020 15:38:54 +0100
+
 cinnamon (4.6.3-c1) unstable; urgency=medium
 
   * Merge '4.6.3' into debian10 and
@@ -223,12 +290,6 @@ cinnamon (4.6.0) ulyana; urgency=medium
   * l10n: Generate module files
 
  -- Clement Lefebvre <root@linuxmint.com>  Wed, 13 May 2020 14:11:56 +0100
-
-cinnamon (4.4.8-c1) unstable; urgency=medium
-
-  * Fixed dependency issue for cinnamon-common
-
- -- ciwei100000 <ciwei100000@gmail.com>  Sun, 26 Apr 2020 23:48:11 -0700
 
 cinnamon (4.4.8) tricia; urgency=medium
 
