@@ -1,3 +1,10 @@
+cinnamon (4.6.7-c1) unstable; urgency=medium
+
+  * Merge '4.6.7' into debian10 and
+  * Fixed dependency issue for cinnamon-common
+
+ -- ciwei100000 <ciwei100000@gmail.com>  Tue, 11 Aug 2020 04:52:50 -0700
+
 cinnamon (4.6.7) ulyana; urgency=medium
 
   [ Michael Webster ]
