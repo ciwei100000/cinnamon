@@ -102,7 +102,6 @@ const Layout = imports.ui.layout;
 const LookingGlass = imports.ui.lookingGlass;
 const NotificationDaemon = imports.ui.notificationDaemon;
 const WindowAttentionHandler = imports.ui.windowAttentionHandler;
-const Scripting = imports.ui.scripting;
 const CinnamonDBus = imports.ui.cinnamonDBus;
 const ThemeManager = imports.ui.themeManager;
 const Magnifier = imports.ui.magnifier;
@@ -328,7 +327,7 @@ function start() {
     // The stage is always covered so Clutter doesn't need to clear it; however
     // the color is used as the default contents for the Muffin root background
     // actor so set it anyways.
-    global.stage.color = DEFAULT_BACKGROUND_COLOR;
+    global.stage.background_color = DEFAULT_BACKGROUND_COLOR;
     global.stage.no_clear_hint = true;
 
     Gtk.IconTheme.get_default().append_search_path("/usr/share/cinnamon/icons/");
@@ -446,13 +445,6 @@ function start() {
 
     global.log('loaded at ' + _startDate);
     log('Cinnamon started at ' + _startDate);
-
-    let perfModuleName = GLib.getenv("CINNAMON_PERF_MODULE");
-    if (perfModuleName) {
-        let perfOutput = GLib.getenv("CINNAMON_PERF_OUTPUT");
-        let module = eval('imports.perf.' + perfModuleName + ';');
-        Scripting.runPerfScript(module, perfOutput);
-    }
 
     wmSettings = new Gio.Settings({schema_id: "org.cinnamon.desktop.wm.preferences"})
     workspace_names = wmSettings.get_strv("workspace-names");
@@ -1129,7 +1121,7 @@ function _stageEventHandler(actor, event) {
         return false;
 
     // This isn't a Meta.KeyBindingAction yet
-    if (symbol == Clutter.Super_L || symbol == Clutter.Super_R) {
+    if (symbol === Clutter.KEY_Super_L || symbol === Clutter.KEY_Super_R) {
         if (expo.visible) {
             expo.hide();
             return true;

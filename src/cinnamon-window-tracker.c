@@ -151,6 +151,64 @@ cinnamon_window_tracker_is_window_interesting (CinnamonWindowTracker *tracker, M
   return meta_window_is_interesting (window);
 }
 
+static gboolean
+is_browser_app (MetaWindow  *window,
+                const gchar *wm_instance,
+                const gchar *wm_class)
+{
+    /* This is to catch browser-based app windows that are spawned
+     * windows (such as from clicking an extension - LINE is a test
+     * case). Another case seems to be web-apps (maybe any chromium-based
+     * browsers) - the --class argument is ignored with a shared profile.
+     *
+     * In this case the browser icon ends up being used due to cinnamon
+     * matching 'chromium-browser' in the wm_class/instance before
+     * falling back to using the window-supplied pixmap.
+     *
+     * Here we try to identify these cases and force Cinnamon to use
+     * the window icon before falling back to existing app matching.
+     *
+     * The icon will likely be inferior and scaled, but it's better
+     * ignoring the intended icon altogether.
+     */
+
+    // This is probably overkill but it's murky whether we'd ever get
+    // something other than utf-8, and g_strdown is broken.
+    g_autofree gchar *utf8_instance = NULL;
+    g_autofree gchar *utf8_class = NULL;
+    g_autofree gchar *lower_instance = NULL;
+    g_autofree gchar *lower_class = NULL;
+
+    utf8_instance = g_utf8_make_valid (wm_instance, -1);
+    utf8_class = g_utf8_make_valid (wm_class, -1);
+
+    lower_instance = g_utf8_casefold (utf8_instance, -1);
+    lower_class = g_utf8_casefold (utf8_class, -1);
+
+    // If the instance and instance are the same ["chromium-browser", "Chromium-browser"]
+    // then this is a normal app, and we treat is as one. Gtk programs also set these
+    // identically (though you can change them, it's discouraged).
+    if (g_strcmp0 (lower_instance, lower_class) == 0)
+    {
+        return FALSE;
+    }
+
+    // If the WM_ROLE is browser, it's a web-app.
+    if (g_strcmp0 (meta_window_get_role (window), "browser") == 0)
+    {
+        return TRUE;
+    }
+
+    // If the two strings differ, and one has browser in it, then assume it's a web app.
+    if (g_strstr_len (lower_instance, -1, "browser") || g_strstr_len (lower_class, -1, "browser"))
+    {
+        return TRUE;
+    }
+
+    // we don't know, match some other way.
+    return FALSE;
+}
+
 /**
  * get_app_from_window_wmclass:
  *
@@ -221,6 +279,11 @@ get_app_from_window_wmclass (MetaWindow  *window)
   app = cinnamon_app_system_lookup_desktop_wmclass (appsys, wm_instance);
   if (app != NULL)
     return g_object_ref (app);
+
+  if (is_browser_app (window, wm_instance, wm_class))
+  {
+    return NULL;
+  }
 
   /* finally, try a match from WM_CLASS to .desktop */
   app = cinnamon_app_system_lookup_desktop_wmclass (appsys, wm_class);
@@ -344,6 +407,85 @@ get_app_from_window_pid (CinnamonWindowTracker  *tracker,
   return result;
 }
 
+static CinnamonApp *
+get_app_for_flatpak_window (MetaWindow *window)
+{
+  CinnamonAppSystem *appsys;
+  CinnamonApp *app = NULL;
+  CinnamonApp *result = NULL;
+  gchar *info_filename;
+  GFile *file;
+  int pid = meta_window_get_client_pid (window);
+
+  g_return_val_if_fail (pid > 0, NULL);
+
+  info_filename = g_strdup_printf ("/proc/%u/root/.flatpak-info", pid);
+  file = g_file_new_for_path (info_filename);
+
+  if (g_file_query_exists (file, NULL)) {
+    gchar *wm_class;
+    gchar *wm_instance;
+    GKeyFile *keyfile;
+
+    appsys = cinnamon_app_system_get_default ();
+
+    keyfile = g_key_file_new ();
+    if (g_key_file_load_from_file (keyfile, info_filename, G_KEY_FILE_NONE, NULL))
+    {
+      gchar *app_id;
+      app_id = g_key_file_get_string (keyfile, "Application", "name", NULL);
+      app = cinnamon_app_system_lookup_flatpak_app_id (appsys, app_id);
+
+      if (app != NULL) {
+        result = g_object_ref (app);
+      }
+    }
+    g_key_file_unref (keyfile);
+
+    wm_instance = g_strconcat(meta_window_get_wm_class_instance (window), GMENU_DESKTOPAPPINFO_FLATPAK_SUFFIX, NULL);
+    wm_class = g_strconcat(meta_window_get_wm_class (window), GMENU_DESKTOPAPPINFO_FLATPAK_SUFFIX, NULL);
+
+    if (result == NULL) {
+      app = cinnamon_app_system_lookup_startup_wmclass (appsys, wm_instance);
+      if (app != NULL) {
+        result = g_object_ref (app);
+      }
+    }
+
+    /* then try a match from WM_CLASS to StartupWMClass */
+    if (result == NULL) {
+      app = cinnamon_app_system_lookup_startup_wmclass (appsys, wm_class);
+      if (app != NULL) {
+        result = g_object_ref (app);
+      }
+    }
+
+    /* then try a match from WM_CLASS (instance part) to .desktop */
+    if (result == NULL) {
+      app = cinnamon_app_system_lookup_desktop_wmclass (appsys, wm_instance);
+      if (app != NULL) {
+        result = g_object_ref (app);
+      }
+    }
+
+    /* finally, try a match from WM_CLASS to .desktop */
+    if (result == NULL) {
+      app = cinnamon_app_system_lookup_desktop_wmclass (appsys, wm_class);
+      if (app != NULL) {
+        result = g_object_ref (app);
+      }
+    }
+
+    g_free (wm_instance);
+    g_free (wm_class);
+  }
+
+  g_free (info_filename);
+  g_object_unref(file);
+
+  return result;
+}
+
 /**
  * get_app_for_window:
  *
@@ -376,6 +518,11 @@ get_app_for_window (CinnamonWindowTracker    *tracker,
 
   if (meta_window_is_remote (window))
     return _cinnamon_app_new_for_window (window);
+
+  /* Check if the window was launched from a sandboxed app, e.g. Flatpak */
+  result = get_app_for_flatpak_window (window);
+  if (result != NULL)
+    return result;
 
   /* Check if the window has a GApplication ID attached; this is
    * canonical if it does

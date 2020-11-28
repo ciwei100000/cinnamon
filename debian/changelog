@@ -1,3 +1,229 @@
+cinnamon (4.8.0) ulyssa; urgency=medium
+
+  [ miniskipper ]
+  * implement suspend-then-hibernate (issue #237)
+
+  [ ronyalaluf ]
+  * fix #2519
+
+  [ ronyala ]
+  * fix RTL bug in panel-edit-mode
+  * fix bug when dragging windows in RTL
+  * fix dragging launchers in RTL
+  * change round to floor in position calculation
+
+  [ Eli Schwartz ]
+  * remove build dependency on dbus-glib
+  * configure.ac: remove pkg-config module checks which are never used
+
+  [ Chase Wright ]
+  * Add Percentage Label to OSD for Volume Control (#9532)
+
+  [ Leigh Scott ]
+  * Bundle libcroco
+  * cr-rgb: remove handling of "inherit" and "transparent"
+  * Fix always-true condition
+  * croco: Remove duplicated conditions
+  * libcroco: Limit recursion in block and any productions CVE-2020-12825)
+  * Handle "color: inherit" directly in get_color_from_term(), not in libcroco
+
+  [ Michael Webster ]
+  * network applet: Make sure there's always a menu item for the active connection.
+  * xapp status applet: Store icons using a unique key based on the icon name and object path.
+  * xapp applet: Go back to using icon 'name' property, not the constructed key, to do applet role checking.
+
+  [ Unknown ]
+  * menu applet: Added option to display panel when the menu is opened
+
+  [ Michael Webster ]
+  * menu applet: Default new 'force show panel' preference to true, move it to the panel behavior group.
+
+  [ Helmut Stult ]
+  * Update cinnamon-xlet-makepot
+
+  [ Stephen Collins ]
+  * systray manager: make all role comparisons lower case
+
+  [ Ammako ]
+  * Fix linuxmint#6243
+
+  [ claudiux ]
+  * [sound@cinnamon.org] Update applet.js - Fixes #9283 (#9490)
+
+  [ Kimimaru ]
+  * Display volume tooltip while scrolling with the mouse for sound@cinnamon.org
+
+  [ Lars Mueller ]
+  * js/misc/utils.js Fix latinise()
+
+  [ Michael Webster ]
+  * menu@cinnamon.org: Allow items to be re-ordered to better reflect the search outcome.
+
+  [ claudiux ]
+  * Update cs_panel.py: Fixes #9487
+  * Add show-buttons option to the TreeList Widgets, align titles as contents and update doc
+
+  [ NikoKrause ]
+  * menu applet: search for words inbetween
+
+  [ Michael Webster ]
+  * cinnamon-menu-editor: refactor ui file layout, add button to open a selected item's desktop file.
+
+  [ NikoKrause ]
+  * menu applet: fix broken search, if no recent documents
+
+  [ ronyalaluf ]
+  * fix issue #9546
+
+  [ Bomdia ]
+  * add applet uuid formatted as style class name
+
+  [ Mirko Girgenti ]
+  * Fix Typo
+
+  [ icarter09 ]
+  * Fix for issue9229
+
+  [ Michael Webster ]
+  * Revert "add applet uuid formatted as style class name"
+  * js/ui/scripting.js: Refactor invalid catch statement (not allowed with mozjs78).
+
+  [ ronyalaluf ]
+  * Fixed applet not responding to fast workspace switches. due to the 100ms throttle, the applet shows the wrong window list for current workspace if more than 1 switch happens in a 100ms timespan (for example, when switching from workspace 1 to 3 very fast).
+  * update throttle, see #9606; fix #9567
+
+  [ claudiux ]
+  * Update xlet-settings.py: Code debug
+
+  [ Contribucious ]
+  * Clutter.KeyName -> Clutter.KEY_KeyName
+  * " == Clutter.KEY_" -> " === Clutter.KEY_"
+  * workspace-switcher applet: Standardization
+  * workspace-switcher applet: New option: "Reverse scrolling direction"
+
+  [ Michael Webster ]
+  * windows-quick-list applet: Support scrolling, place the icons before the labels to be more consistent with the rest of cinnamon.
+
+  [ Stephen Collins ]
+  * Port to meson
+
+  [ Michael Webster ]
+  * Port to mozjs78 (#9624)
+
+  [ Fabio Fantoni ]
+  * Replace deprecated gvfs-bin calls with gio-tool
+  * Add 2 man pages from debian packages
+
+  [ Clement Lefebvre ]
+  * Fix ./test
+
+  [ Michael Webster ]
+  * meson.build: Fix gettext domain (Cinnamon -> cinnamon), fix incorrect version check for cjs.
+
+  [ Stephen Collins ]
+  * debian build: use debhelper >= 11 for meson support
+  * build: re-add missing defines to suppress some extra noise in the logs.
+
+  [ Michael Webster ]
+  * Debian cleanup.
+
+  [ Contribucious ]
+  * "KEY_KP_Enter" as an alternative to "KEY_Return" everywhere
+
+  [ Clement Lefebvre ]
+  * Simplify spice version checks (#9664)
+  * Spices: Bypass global proxy
+
+  [ Michael Webster ]
+  * sound@cinnamon.org: Fix spotify artwork url.
+
+  [ Grzegorz Sobczyk ]
+  * network@cinnamon.org - add keybinding to show applet menu
+
+  [ claudiux ]
+  * Update xlet-settings.py: Take into account icon.svg prior to icon.png. Until now, when viewing an applet's settings, the icon.png icon was displayed in the panel, which could contrast with the applet icon itself and confuse the user. From now on, if an icon.svg icon exists then this one is displayed first.
+
+  [ Fabio Fantoni ]
+  * Add Blueman to the possible icon in cinnamon settings
+  * fix lmde4 build
+
+  [ icarter09 ]
+  * Removed logic that was keeping icons around after window closed
+
+  [ claudiux ]
+  * GWL appList.js: Fix issues #9650 #9219 #8377
+
+  [ Lars Mueller ]
+  * Make building the reference documentation optional
+
+  [ ronyalaluf ]
+  * fix placeholder size not scaling to ui
+
+  [ James Tattersall ]
+  * Fix monitor disconnect resetting icon sizes
+
+  [ Timon de Groot ]
+  * grouped-window-list: Add FLASH_MAX_COUNT constant
+
+  [ ronyalaluf ]
+  * Improve dragging of items * fix juddring of windows while dragging (fix #8639). * change dragging animation. * fix problems with dragging icon showing incorrect operation. * add checks to keep pinned and unpinned items separate while dragging. * add support for dragging new launchers into middle of window list.
+  * add name to proxy drag actor so it can be detected
+  * update drag logic to test for 'xdnd-proxy-actor'
+
+  [ Michael Webster ]
+  * Add a favorites applet.
+  * menu applet: Add a favorites category.
+
+  [ Joshua Peisach ]
+  * Solve a deprecation problem in an if statement
+
+  [ Timon de Groot ]
+  * window-list applet: Add FLASH_MAX_COUNT constant (#9698)
+
+  [ Leigh Scott ]
+  * Add missing GdkPixbuf import
+
+  [ Michael Webster ]
+  * menu@cinnamon.org: lengthen the bit mask for the RefreshFlags.
+  * cinnamon-window-tracker.c: Try to identify web apps in certain situations so that the correct icon can be used.
+
+  [ claudiux ]
+  * applet.js: adapt configureApplet to xlet-settings
+  * desklet.js: adapt configureDesklet to xlet-settings
+
+  [ Mikhail Bodrov ]
+  * checkBox: refactor from prototype to es class (#9692)
+
+  [ Michael Webster ]
+  * cinnamon-window-tracker.c: Remove leftover debugging line.
+
+  [ Bert Hekman ]
+  * Add mic mute keyboard shortcut option
+
+  [ ronyalaluf ]
+  * fix apps being reactive during panel-edit-mode
+  * Fix tooltip lables stuck on after menu cycle
+
+  [ Lars Mueller ]
+  * Improve integration of flatpak apps for side-by-side installations
+
+  [ ronyalaluf ]
+  * fix icon getting hidden in panel-edit-mode when toggling show-empty-tray setting
+
+  [ Mirko Girgenti ]
+  * [FEAUTURE] [BETTER THEMING] Add applet uuid formatted as style class name (#9677)
+
+  [ Clement Lefebvre ]
+  * Icons: Make system settings use preferences-desktop instead of preferences-system
+
+  [ Michael Webster ]
+  * debian/control, meson: Update some dependencies.
+
+  [ Clement Lefebvre ]
+  * l10n: Update POT and fix l10n issues
+
+ -- Clement Lefebvre <root@linuxmint.com>  Thu, 26 Nov 2020 15:17:04 +0000
+
 cinnamon (4.6.7-c1) unstable; urgency=medium
 
   * Merge '4.6.7' into debian10 and
@@ -71,13 +297,6 @@ cinnamon (4.6.4) ulyana; urgency=medium
   * Notification applet: Fix ngettext translations
 
  -- Clement Lefebvre <root@linuxmint.com>  Wed, 17 Jun 2020 15:38:54 +0100
-
-cinnamon (4.6.3-c1) unstable; urgency=medium
-
-  * Merge '4.6.3' into debian10 and
-  * Fixed dependency issue for cinnamon-common
-
- -- ciwei100000 <ciwei100000@gmail.com>  Sat, 13 Jun 2020 05:03:28 -0700
 
 cinnamon (4.6.3) ulyana; urgency=medium
 

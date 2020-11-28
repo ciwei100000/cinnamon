@@ -3,6 +3,7 @@ const AppletManager = imports.ui.appletManager;
 const Clutter = imports.gi.Clutter;
 const St = imports.gi.St;
 const Cinnamon = imports.gi.Cinnamon;
+const CMenu = imports.gi.CMenu;
 const Lang = imports.lang;
 const Gio = imports.gi.Gio;
 const PopupMenu = imports.ui.popupMenu;
@@ -345,7 +346,7 @@ class LaunchersBox {
 
         let vertical = this.applet.orientation == St.Side.LEFT || this.applet.orientation == St.Side.RIGHT;
         this._dragPlaceholder = new DND.GenericDragPlaceholderItem();
-        let placeholderSize = vertical ? [1, this.applet.icon_size] : [this.applet.icon_size, 1];
+        let placeholderSize = vertical ? [1, this.applet.icon_size * global.ui_scale] : [this.applet.icon_size * global.ui_scale, 1];
         this._dragPlaceholder.child.set_size(...placeholderSize);
         this.actor.insert_child_at_index(this._dragPlaceholder.actor, index);
 
@@ -390,7 +391,11 @@ class LaunchersBox {
         let boxSize = vertical ? this.actor.height : this.actor.width;
         let mPos = vertical ? y : x;
         let children = this.actor.get_children();
-        let dropIndex = Math.round(mPos / boxSize * children.length);
+
+        if(!vertical && St.Widget.get_default_direction () === St.TextDirection.RTL) //in RTL the dropIndex should be reversed
+            mPos = boxSize - mPos;
+
+        let dropIndex = Math.floor(mPos / boxSize * children.length);
 
         // -1 is end, 0 is start
         if (dropIndex >= children.length)
@@ -574,7 +579,7 @@ class CinnamonPanelLaunchersApplet extends Applet.Applet {
         let app = appSys.lookup_app(path);
         let appinfo = null;
         if (!app) {
-            appinfo = Gio.DesktopAppInfo.new_from_filename(CUSTOM_LAUNCHERS_PATH+"/"+path);
+            appinfo = CMenu.DesktopAppInfo.new_from_filename(CUSTOM_LAUNCHERS_PATH+"/"+path);
             if (!appinfo) {
                 global.logWarning(`Failed to add launcher from path: ${path}`);
                 return null;

@@ -168,13 +168,14 @@ class VolumeSlider extends PopupMenu.PopupSliderMenuItem {
         }
 
         this._slider.queue_repaint();
+        this.tooltip.show();
         this.emit('value-changed', this._value);
     }
 
     _onKeyPressEvent(actor, event) {
         let key = event.get_key_symbol();
-        if (key == Clutter.KEY_Right || key == Clutter.KEY_Left) {
-            let delta = key == Clutter.KEY_Right ? VOLUME_ADJUSTMENT_STEP : -VOLUME_ADJUSTMENT_STEP;
+        if (key === Clutter.KEY_Right || key === Clutter.KEY_Left) {
+            let delta = key === Clutter.KEY_Right ? VOLUME_ADJUSTMENT_STEP : -VOLUME_ADJUSTMENT_STEP;
             this._value = Math.max(0, Math.min(this._value + delta/this.applet._volumeMax*this.applet._volumeNorm, 1));
             this._slider.queue_repaint();
             this.emit('value-changed', this._value);
@@ -209,6 +210,8 @@ class VolumeSlider extends PopupMenu.PopupSliderMenuItem {
         let percentage = Math.round(visible_value * 100) + "%";
 
         this.tooltip.set_text(this.tooltipText + percentage);
+        if (this._dragging)
+            this.tooltip.show();
         let iconName = this._volumeToIcon(value);
         if (this.app_icon == null) {
             this.icon.icon_name = iconName;
@@ -687,9 +690,8 @@ class Player extends PopupMenu.PopupMenuSection {
         let change = false;
         if (metadata["mpris:artUrl"]) {
             let artUrl = metadata["mpris:artUrl"].unpack();
-            if ( this._name === "spotify" ) {
-                artUrl = artUrl.replace("/thumb/", "/300/"); // Spotify 0.9.x
-                artUrl = artUrl.replace("/image/", "/300/"); // Spotify 0.27.x
+            if ( this._name.toLowerCase() === "spotify" ) {
+                artUrl = artUrl.replace("open.spotify.com", "i.scdn.co");
             }
             if (this._trackCoverFile != artUrl) {
                 this._trackCoverFile = artUrl;
@@ -834,11 +836,12 @@ class MediaPlayerLauncher extends PopupMenu.PopupBaseMenuItem {
         this.addActor(this.label);
         this._icon = app.create_icon_texture(ICON_SIZE);
         this.addActor(this._icon, { expand: false });
-        this.connect("activate", (event) => this._onActivate(event).get_time());
+        this.connect("activate", (event) => this._onActivate(event));
     }
 
-    _onActivate(time) {
-        this._app.activate_full(-1, time);
+    _onActivate(event) {
+        let _time = event.time;
+        this._app.activate_full(-1, _time);
     }
 }
 
@@ -1107,6 +1110,8 @@ class CinnamonSoundApplet extends Applet.TextIconApplet {
             }
         }
 
+        this.tooltip.show();
+
         this._notifyVolumeChange(this._output);
     }
 
@@ -1361,7 +1366,9 @@ class CinnamonSoundApplet extends Applet.TextIconApplet {
                 let menuItem = new MediaPlayerLauncher(playerApp, this._launchPlayerItem.menu);
                 this._launchPlayerItem.menu.addMenuItem(menuItem);
             }
-        } else {
+        }
+
+        if (!this.playerControl || !availablePlayers.length) {
             this._launchPlayerItem.actor.hide();
         }
     }

@@ -201,6 +201,10 @@ var Applet = class Applet {
         }
     }
 
+    _addStyleClass(className){
+        this.actor.add_style_class_name(className);
+    }
+
     _getPanelInfo(instance_id) {
         if (!instance_id) instance_id = this.instance_id;
         let appletDefinition = AppletManager.getAppletDefinition({applet_id: instance_id});
@@ -642,8 +646,8 @@ var Applet = class Applet {
         Util.spawnCommandLine("xlet-about-dialog applets " + this._uuid);
     }
 
-    configureApplet() {
-        Util.spawnCommandLine("xlet-settings applet " + this._uuid + " " + this.instance_id);
+    configureApplet(tab=0) {
+        Util.spawnCommandLine("xlet-settings applet " + this._uuid + " -i " + this.instance_id + " -t " + tab);
     }
 
     get _panelHeight() {

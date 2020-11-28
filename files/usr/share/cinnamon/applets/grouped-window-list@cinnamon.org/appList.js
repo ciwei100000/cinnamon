@@ -130,37 +130,28 @@ class AppList {
 
         if (lastCycled < 0 || lastCycled > this.appList.length - 1) lastCycled = 0;
 
-        this.appList[lastCycled].groupState.set({thumbnailMenuEntered: true});
-        if (!this.appList[lastCycled].hoverMenu) this.appList[lastCycled].initThumbnailMenu();
-        this.appList[lastCycled].hoverMenu.open(true);
+        let openHoverMenu = this.appList[lastCycled].groupState.metaWindows.length !== 0
+
+        if(openHoverMenu)
+        {
+            this.appList[lastCycled].groupState.set({thumbnailMenuEntered: true});
+            if (!this.appList[lastCycled].hoverMenu) this.appList[lastCycled].initThumbnailMenu();
+            this.appList[lastCycled].hoverMenu.open(true);
+        }
 
         lastCycled++;
         this.state.set({lastCycled});
 
-        if (this.appList[lastCycled - 1].groupState.metaWindows.length === 0) {
+        if (!openHoverMenu)
             this.cycleMenus(r + 1);
-        }
-
-
-        let lastCycledTime = this.lastCycledTime;
-        setTimeout(() => {
-            if (lastCycledTime === this.lastCycledTime) {
-                this.state.set({lastCycled: -1});
-            }
-        }, 2000)
-    }
-
-    // Gets a list of every app on the current workspace
-    getSpecialApps() {
-        this.specialApps = [];
-        let apps = Gio.app_info_get_all();
-
-        for (let i = 0, len = apps.length; i < len; i++) {
-            let wmClass = apps[i].get_startup_wm_class();
-            if (wmClass) {
-                let id = apps[i].get_id();
-                this.specialApps.push({id, wmClass});
-            }
+        else
+        {
+            let lastCycledTime = this.lastCycledTime;
+            setTimeout(() => {
+                if (lastCycledTime === this.lastCycledTime) {
+                    this.state.set({lastCycled: -1});
+                }
+            }, 2000)
         }
     }
 
@@ -170,7 +161,6 @@ class AppList {
             this.appList[i] = null;
         }
         this.appList = [];
-        this.getSpecialApps();
         this.loadFavorites();
         this.refreshApps();
     }
@@ -250,13 +240,7 @@ class AppList {
         // If it does, then we don't need to do anything.  If not, we need to
         // create an app group.
         if (!app) {
-            app = this.state.trigger('getAppFromWMClass', this.specialApps, metaWindow);
-        }
-        if (!app) {
-            let tracker = this.state.trigger('getTracker');
-            if (tracker) {
-                app = tracker.get_window_app(metaWindow);
-            }
+            app = this.state.trigger('getAppFromWindow', metaWindow);
         }
         if (!app
             || (!isFavoriteApp
@@ -344,7 +328,7 @@ class AppList {
             && !this.state.removingWindowFromWorkspaces) {
             // Abort the remove if the window is just changing workspaces, window
             // should always remain indexed on all workspaces while its mapped.
-            if (!metaWindow.showing_on_its_workspace()) return;
+            // if (!metaWindow.showing_on_its_workspace()) return;
             this.state.removingWindowFromWorkspaces = true;
             this.state.trigger('removeWindowFromAllWorkspaces', metaWindow);
             return;
@@ -383,6 +367,7 @@ class AppList {
                 this.appList[refApp].destroy(true);
                 this.appList[refApp] = undefined;
                 this.appList.splice(refApp, 1);
+                this.refreshList();
             });
         }
     }

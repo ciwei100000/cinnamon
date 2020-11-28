@@ -14,6 +14,7 @@ const {createStore} = imports.misc.state;
 const {AppMenuButtonRightClickMenu, HoverMenuController, AppThumbnailHoverMenu} = require('./menus');
 const {
     FLASH_INTERVAL,
+    FLASH_MAX_COUNT,
     MAX_BUTTON_WIDTH,
     BUTTON_BOX_ANIMATION_TIME,
     RESERVE_KEYS,
@@ -328,7 +329,7 @@ class AppGroup {
 
         this.actor.remove_style_pseudo_class('active');
         this.actor.add_style_class_name('grouped-window-list-item-demands-attention');
-        if (counter < 4) {
+        if (counter < FLASH_MAX_COUNT) {
             setTimeout(() => {
                 if (this.actor && this.actor.has_style_class_name('grouped-window-list-item-demands-attention')) {
                     this.actor.remove_style_class_name('grouped-window-list-item-demands-attention');
@@ -643,7 +644,7 @@ class AppGroup {
 
     handleDragOver(source, actor, x, y, time) {
         if (!this.state.settings.enableDragging
-            || source instanceof AppGroup
+            || actor.name != "xdnd-proxy-actor"
             || this.state.panelEditMode) {
             return DND.DragMotionResult.CONTINUE;
         }
@@ -661,7 +662,7 @@ class AppGroup {
                 this.hoverMenu.open(true);
             }
         }
-        return true;
+        return DND.DragMotionResult.CONTINUE;
     }
 
     getDragActor() {
