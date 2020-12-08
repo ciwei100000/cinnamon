@@ -84,7 +84,6 @@ libcinnamon_deps = [
     gio_unix,
     gl,
     gtk,
-    libnm,
     muffin,
     pango,
     polkit,
@@ -94,6 +93,12 @@ libcinnamon_deps = [
     xfixes,
     xml,
 ]
+
+if not get_option('disable_networkmanager')
+    libcinnamon_deps += [
+        libnm,
+    ]
+endif
 
 non_gir = []
 if get_option('build_recorder')
@@ -115,8 +120,7 @@ endif
 
 libcinnamon = library(
     'cinnamon',
-    [cinnamon_sources, non_gir, tray_sources],
-    c_args: '-DG_LOG_DOMAIN="notification_area"',
+    [cinnamon_sources, non_gir, tray_sources, st_enum_types[1]],
     include_directories: [include_root, include_directories('st', 'tray')],
     install_rpath: join_paths(prefix, pkglibdir),
     dependencies: libcinnamon_deps,
@@ -137,7 +141,7 @@ executable(
     include_directories: include_root,
     dependencies: [config_h, gtk],
     install: true,
-    install_dir: pkglibdir,
+    install_dir: libexecdir,
 )
 
 js_tester = executable(
@@ -158,7 +162,7 @@ executable(
         '-DLOCALEDIR="@0@"'.format(join_paths(prefix, datadir, 'locale')),
         '-DCINNAMON_PKGLIBDIR="@0@"'.format(join_paths(prefix, pkglibdir)),
     ],
-    install_rpath: join_paths(prefix, pkglibdir),
+    install_rpath: ':'.join([join_paths(prefix, pkglibdir), muffinlibdir]),
     include_directories: include_root,
     dependencies: cinnamon_dep,
     install: true,

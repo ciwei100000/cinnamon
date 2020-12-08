@@ -55,7 +55,7 @@ class CinnamonFavoriteApplet extends Applet.IconApplet {
     constructor(metadata, orientation, panel_height, instance_id) {
         super(orientation, panel_height, instance_id);
         log("new fav app");
-        this.set_applet_icon_symbolic_name("starred-symbolic");
+        this.set_applet_icon_symbolic_name("xapp-user-favorites-symbolic");
         this.set_applet_tooltip(_("Favorites"));
 
         this.menuManager = new PopupMenu.PopupMenuManager(this);
@@ -92,7 +92,7 @@ class CinnamonFavoriteApplet extends Applet.IconApplet {
 
     on_panel_edit_mode_changed() {
         let reactive = !global.settings.get_boolean('panel-edit-mode');
-        this.actor.visible = reactive;
+        this.actor.visible = reactive && this.favorites.get_n_favorites() > 0;
     }
 
     on_applet_removed_from_panel () {
@@ -146,10 +146,6 @@ class CinnamonFavoriteApplet extends Applet.IconApplet {
                 this._favoriteButtons.push(button);
                 this.favoritesBox.add_child(button.actor);
             }
-        } else {
-            let button = new NoFavoriteMenuItem();
-            this._favoriteButtons.push(button);
-            this.favoritesBox.add_child(button.actor);
         }
 
         // Can't set a max height so limit it based on the number of favorites.
