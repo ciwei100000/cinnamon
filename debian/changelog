@@ -1,3 +1,9 @@
+cinnamon (4.8.1-c1) unstable; urgency=medium
+
+  * Merge '4.8.1' into debian10
+
+ -- ciwei100000 <ciwei100000@gmail.com>  Tue, 8 Dec 2020 03:43:45 -0800
+
 cinnamon (4.8.1) ulyssa; urgency=medium
 
   [ Michael Webster ]
