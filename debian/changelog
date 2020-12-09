@@ -1,3 +1,9 @@
+cinnamon (4.8.2-c1) unstable; urgency=medium
+
+  * Merge '4.8.2' into debian10
+
+ -- ciwei100000 <ciwei100000@gmail.com>  Wed, 9 Dec 2020 15:14:36 -0800
+
 cinnamon (4.8.2) ulyssa; urgency=medium
 
   * Favorites applet: Fix papercuts
