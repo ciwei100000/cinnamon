@@ -1,3 +1,10 @@
+cinnamon (4.8.2) ulyssa; urgency=medium
+
+  * Favorites applet: Fix papercuts
+  * l10n: Update POT
+
+ -- Clement Lefebvre <root@linuxmint.com>  Tue, 08 Dec 2020 12:56:15 +0000
+
 cinnamon (4.8.1-c1) unstable; urgency=medium
 
   * Merge '4.8.1' into debian10
@@ -52,12 +59,6 @@ cinnamon (4.8.1) ulyssa; urgency=medium
   * menu applet: Follow-up to previous commit, the categoryId for favorites is actually 'favorite' for 'an individual favorite', so we should look for that, not the plural.
 
  -- Clement Lefebvre <root@linuxmint.com>  Tue, 08 Dec 2020 10:37:58 +0000
-
-cinnamon (4.8.0-c1) unstable; urgency=medium
-
-  * Merge '4.8.0' into debian10
-
- -- ciwei100000 <ciwei100000@gmail.com>  Sat, 28 Nov 2020 05:27:02 -0800
 
 cinnamon (4.8.0) ulyssa; urgency=medium
 
