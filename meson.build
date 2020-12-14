@@ -1,4 +1,4 @@
-project('Cinnamon', 'c', version : '4.8.2', meson_version : '>=0.46.0')
+project('Cinnamon', 'c', version : '4.8.3', meson_version : '>=0.46.0')
 
 gnome = import('gnome')
 i18n = import('i18n')
@@ -49,7 +49,8 @@ xml = dependency('libxml-2.0')
 
 has_nm = not get_option('disable_networkmanager')
 if has_nm
-    libnm = dependency('libnm')
+    # only ever used in *.js via gi import
+    dependency('libnm')
 endif
 
 # on some systems we need to find the math lib to make sure it builds

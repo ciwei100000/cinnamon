@@ -41,7 +41,7 @@ class FavoriteMenuItem extends PopupMenu.PopupBaseMenuItem {
 class CinnamonFavoriteApplet extends Applet.IconApplet {
     constructor(metadata, orientation, panel_height, instance_id) {
         super(orientation, panel_height, instance_id);
-        log("new fav app");
+
         this.set_applet_icon_symbolic_name("xapp-user-favorites-symbolic");
         this.set_applet_tooltip(_("Favorites"));
 
@@ -65,7 +65,7 @@ class CinnamonFavoriteApplet extends Applet.IconApplet {
 
         this.settings.bind("show-full-uri", "_show_full_uri", this.settings_changed);
 
-        this.favorites = new XApp.Favorites();
+        this.favorites = XApp.Favorites.get_default();
 
         this._favoriteButtons = [];
         this._refreshFavorites();
