@@ -54,10 +54,12 @@ cinnamon_sources = [
     cinnamon_headers,
 ]
 
-cinnamon_sources += gnome.mkenums_simple(
+cinnamon_enum_types = gnome.mkenums_simple(
     'cinnamon-enum-types',
     sources: cinnamon_headers,
 )
+
+cinnamon_sources += cinnamon_enum_types
 
 tray_headers = [
     'tray/na-tray-child.h',
@@ -140,7 +142,7 @@ executable(
 
 js_tester = executable(
     'run-js-test',
-    'run-js-test.c',
+    ['run-js-test.c', cinnamon_enum_types[1]],
     c_args: [
         '-DCINNAMON_PKGLIBDIR="@0@"'.format(join_paths(prefix, pkglibdir)),
     ],
@@ -151,7 +153,7 @@ js_tester = executable(
 
 executable(
     'cinnamon',
-    'main.c',
+    ['main.c', cinnamon_enum_types[1]],
     c_args: [
         '-DLOCALEDIR="@0@"'.format(join_paths(prefix, datadir, 'locale')),
         '-DCINNAMON_PKGLIBDIR="@0@"'.format(join_paths(prefix, pkglibdir)),
