@@ -10,6 +10,7 @@
  * @wm (WindowManager.WindowManager): The window manager
  * @messageTray (MessageTray.MessageTray): The mesesage tray
  * @notificationDaemon (NotificationDaemon.NotificationDaemon): The notification daemon
+ * @windowAttentionHandler (WindowAttentionHandler.WindowAttentionHandler): The window attention handle
  * @recorder (Cinnamon.Recorder): The recorder
  * @cinnamonDBusService (CinnamonDBus.Cinnamon): The cinnamon dbus object
  * @modalCount (int): The number of modals "pushed"
@@ -100,6 +101,7 @@ const RunDialog = imports.ui.runDialog;
 const Layout = imports.ui.layout;
 const LookingGlass = imports.ui.lookingGlass;
 const NotificationDaemon = imports.ui.notificationDaemon;
+const WindowAttentionHandler = imports.ui.windowAttentionHandler;
 const CinnamonDBus = imports.ui.cinnamonDBus;
 const ThemeManager = imports.ui.themeManager;
 const Magnifier = imports.ui.magnifier;
@@ -135,6 +137,7 @@ var wm = null;
 var a11yHandler = null;
 var messageTray = null;
 var notificationDaemon = null;
+var windowAttentionHandler = null;
 var recorder = null;
 var cinnamonDBusService = null;
 var modalCount = 0;
@@ -418,6 +421,7 @@ function start() {
     messageTray = new MessageTray.MessageTray();
     keyboard = new Keyboard.Keyboard();
     notificationDaemon = new NotificationDaemon.NotificationDaemon();
+    windowAttentionHandler = new WindowAttentionHandler.WindowAttentionHandler();
     placesManager = new PlacesManager.PlacesManager();
 
     magnifier = new Magnifier.Magnifier();
@@ -1322,23 +1326,15 @@ function getRunDialog() {
  * and switching out of the overview if it's currently active
  */
 function activateWindow(window, time, workspaceNum) {
-    let activeWorkspaceNum = global.screen.get_active_workspace_index();
-    let windowWorkspaceNum = (workspaceNum !== undefined) ? workspaceNum : window.get_workspace().index();
-
     if (!time)
         time = global.get_current_time();
 
-    if (windowWorkspaceNum != activeWorkspaceNum) {
-        let workspace = global.screen.get_workspace_by_index(windowWorkspaceNum);
-        workspace.activate_with_focus(window, time);
-    } else {
-        window.activate(time);
-        Mainloop.idle_add(function() {
-            window.foreach_transient(function(win) {
-                win.activate(time);
-            });
+    window.activate(time);
+    Mainloop.idle_add(function() {
+        window.foreach_transient(function(win) {
+            win.activate(time);
         });
-    }
+    });
 
     overview.hide();
     expo.hide();
