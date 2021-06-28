@@ -1,3 +1,9 @@
+cinnamon (5.0.3-c1) unstable; urgency=medium
+
+  * Merge '5.0.3' into debian10
+
+ -- ciwei100000 <ciwei100000@gmail.com>  Sun, 27 Jun 2021 20:48:46 -0700
+
 cinnamon (5.0.3) uma; urgency=medium
 
   [ Michael Webster ]
